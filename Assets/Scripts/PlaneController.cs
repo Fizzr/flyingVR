@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class PlaneController : MonoBehaviour {
@@ -12,10 +13,13 @@ public class PlaneController : MonoBehaviour {
 
 	public AudioSource explosionAudio;
 	public Camera cam;
+	public Text scoreText;
 	private Rigidbody rb;
 	private Vector3 offset;
-	bool spun = false;
-	bool stop = false;
+	private bool started = false;
+	private bool spun = false;
+	private bool stop = false;
+	private int score = 0;
 	// Use this for initialization
 	void Start () 
 	{
@@ -25,105 +29,110 @@ public class PlaneController : MonoBehaviour {
 	// Update is called once per frame
 	void Update () 
 	{
-		rb.AddRelativeForce (0, 0, MOTORPOWER);
-
-		//Torque
-
-		//DEBUG
-
-		rb.AddRelativeTorque(Input.GetAxis("Vertical")* ANGLE_RANGE *PITCHMOD , 0 , Input.GetAxis("Horizontal")* ANGLE_RANGE *ROLLMOD*-1f);
-
-		// VR
-		if(!(Input.touchCount > 0))
+		if(started)
 		{
-			Vector3 headRot = cam.transform.localRotation.eulerAngles;
+			rb.AddRelativeForce (0, 0, MOTORPOWER);
 
-			float xrot = headRot.x;
-			if (xrot >180)
-				xrot = xrot - 360;
+			//Torque
 
-			float yrot = headRot.y;
-			if(yrot > 180)
-				yrot = yrot - 360;
+			//DEBUG
 
-			float zrot = headRot.z;
-			if(zrot > 180)
-				zrot = zrot - 360;
+			rb.AddRelativeTorque(Input.GetAxis("Vertical")* ANGLE_RANGE *PITCHMOD , 0 , Input.GetAxis("Horizontal")* ANGLE_RANGE *ROLLMOD*-1f);
 
-			headRot = new Vector3(xrot, yrot, zrot);
-
-			Vector3 torqueToAdd = new Vector3 (0,0,0);
-
-			if(Mathf.Abs(xrot) >ANGLE_RANGE)
+			// VR
+			if(!(Input.touchCount > 0))
 			{
-				float sign = (xrot > 0? 1: -1);
-				torqueToAdd.x = ANGLE_RANGE * sign;
-			}
-			else
-			{
-				torqueToAdd.x = xrot;
-			}
-			torqueToAdd.x = torqueToAdd.x * PITCHMOD;
+				Vector3 headRot = cam.transform.localRotation.eulerAngles;
 
-			if(Mathf.Abs(yrot) >ANGLE_RANGE)
-			{
-				float sign = (yrot > 0? 1: -1);
-				torqueToAdd.y = ANGLE_RANGE * sign;
-			}
-			else
-			{
-				torqueToAdd.y = yrot;
-			}
-			torqueToAdd.y = torqueToAdd.z * YAWMOD;
+				float xrot = headRot.x;
+				if (xrot >180)
+					xrot = xrot - 360;
 
-			if(Mathf.Abs(zrot) >ANGLE_RANGE)
-			{
-				float sign = (zrot > 0? 1: -1);
-				torqueToAdd.z = ANGLE_RANGE * sign;
-			}
-			else
-			{
-				torqueToAdd.z = zrot;
-			}
-			torqueToAdd.z = torqueToAdd.z * ROLLMOD;
+				float yrot = headRot.y;
+				if(yrot > 180)
+					yrot = yrot - 360;
 
-			rb.AddRelativeTorque(torqueToAdd);				////// Make more advanced!
-		}
-		// Lift
-		Vector3 rot = transform.rotation.eulerAngles;
-		Vector3 vel = transform.InverseTransformVector(rb.velocity);
-		float forwardVel = vel.z;
+				float zrot = headRot.z;
+				if(zrot > 180)
+					zrot = zrot - 360;
 
-		//pitch
-		float pitch = rot.x;
-		if(pitch > 180)
-		{
-			pitch = Mathf.Abs(pitch - 360);
-			if(pitch > 90)
-			{
-				pitch = Mathf.Abs(pitch - 180);
+				headRot = new Vector3(xrot, yrot, zrot);
+
+				Vector3 torqueToAdd = new Vector3 (0,0,0);
+
+				if(Mathf.Abs(xrot) >ANGLE_RANGE)
+				{
+					float sign = (xrot > 0? 1: -1);
+					torqueToAdd.x = ANGLE_RANGE * sign;
+				}
+				else
+				{
+					torqueToAdd.x = xrot;
+				}
+				torqueToAdd.x = torqueToAdd.x * PITCHMOD;
+
+				if(Mathf.Abs(yrot) >ANGLE_RANGE)
+				{
+					float sign = (yrot > 0? 1: -1);
+					torqueToAdd.y = ANGLE_RANGE * sign;
+				}
+				else
+				{
+					torqueToAdd.y = yrot;
+				}
+				torqueToAdd.y = torqueToAdd.z * YAWMOD;
+
+				if(Mathf.Abs(zrot) >ANGLE_RANGE)
+				{
+					float sign = (zrot > 0? 1: -1);
+					torqueToAdd.z = ANGLE_RANGE * sign;
+				}
+				else
+				{
+					torqueToAdd.z = zrot;
+				}
+				torqueToAdd.z = torqueToAdd.z * ROLLMOD;
+
+				rb.AddRelativeTorque(torqueToAdd);				////// Make more advanced!
 			}
-		}
-		rb.AddForce(0f, -MOTORPOWER * 1.2f * Mathf.Pow((pitch/90f),2f), 0f);
+				
+			// Lift
+			Vector3 rot = transform.rotation.eulerAngles;
+			Vector3 vel = transform.InverseTransformVector(rb.velocity);
+			float forwardVel = vel.z;
 
-
-		////Roll
-		if(pitch < 70)				//fucky shit happens with euler angles if pitched too far up. so lets just ignore it. 
-		{
-			float roll = rot.z;
-			float sign = -1;
-			if(roll > 180)
+			//pitch
+			float pitch = rot.x;
+			if(pitch > 180)
 			{
-				sign = 1f;
-				roll = Mathf.Abs(roll - 360); // <- 180, -180 ->
+				pitch = Mathf.Abs(pitch - 360);
+				if(pitch > 90)
+				{
+					pitch = Mathf.Abs(pitch - 180);
+				}
 			}
-			if(roll > 90)
-				roll= Mathf.Abs(roll -180); // 0 to 90, 90 to 0			//Doesn't matter which side, plane is tilting, or if plane is upside down (kinda. simplified)
-			
-			rb.AddForce(0f, -rb.mass*9f * 0.5f * Mathf.Pow(roll/90f, 3f),0f);  //Gravity pulling down
-			rb.AddTorque(0, sign * (roll/90f)/2 * BANKMOD, 0);
+			rb.AddForce(0f, -MOTORPOWER * 1.2f * Mathf.Pow((pitch/90f),2f), 0f);
+
+
+			////Roll
+			if(pitch < 70)				//fucky shit happens with euler angles if pitched too far up. so lets just ignore it. 
+			{
+				float roll = rot.z;
+				float sign = -1;
+				if(roll > 180)
+				{
+					sign = 1f;
+					roll = Mathf.Abs(roll - 360); // <- 180, -180 ->
+				}
+				if(roll > 90)
+					roll= Mathf.Abs(roll -180); // 0 to 90, 90 to 0			//Doesn't matter which side, plane is tilting, or if plane is upside down (kinda. simplified)
+				
+				rb.AddForce(0f, -rb.mass*9f * 0.5f * Mathf.Pow(roll/90f, 3f),0f);  //Gravity pulling down
+				rb.AddTorque(0, sign * (roll/90f)/2 * BANKMOD, 0);
+			}
 		}
 	}
+
 
 	void OnCollisionEnter(Collision collision)
 	{
@@ -131,6 +140,20 @@ public class PlaneController : MonoBehaviour {
 		print("Collider: "+ collision.gameObject.ToString());
 		explosionAudio.transform.position = collision.contacts[0].point;
 		explosionAudio.Play();
+		score = 0;
+		scoreText.text = "Score: "+score;
 	}
 
+	public void StartGame()
+	{
+		started = true;
+	}
+
+	void OnTriggerEnter(Collider other)
+	{
+		other.transform.position = new Vector3 (Random.Range(-300, 300), Random.Range(20, 100), Random.Range(-300, 300));
+		other.transform.rotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
+		score++;
+		scoreText.text = "Score: "+score;
+	}
 }
