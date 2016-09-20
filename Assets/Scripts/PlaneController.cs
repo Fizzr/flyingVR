@@ -11,7 +11,7 @@ public class PlaneController : MonoBehaviour {
 	private static float BANKMOD = 50f;
 	private static float ANGLE_RANGE = 30f;
 
-	public AudioSource explosionAudio;
+	public GvrAudioSource explosionAudio;
 	public Camera cam;
 	public Text scoreText;
 	private Rigidbody rb;
