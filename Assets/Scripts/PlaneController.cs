@@ -40,7 +40,7 @@ public class PlaneController : MonoBehaviour {
 			rb.AddRelativeTorque(Input.GetAxis("Vertical")* ANGLE_RANGE *PITCHMOD , 0 , Input.GetAxis("Horizontal")* ANGLE_RANGE *ROLLMOD*-1f);
 
 			// VR
-			if(!(Input.touchCount > 0))
+			if(!(Input.touchCount > 0))  //In here, movement controll.
 			{
 				Vector3 headRot = cam.transform.localRotation.eulerAngles;
 
@@ -56,7 +56,7 @@ public class PlaneController : MonoBehaviour {
 				if(zrot > 180)
 					zrot = zrot - 360;
 
-				headRot = new Vector3(xrot, yrot, zrot);
+				headRot = new Vector3(xrot, yrot, zrot); //Converted rotation from 0-360 to -180 to 180
 
 				Vector3 torqueToAdd = new Vector3 (0,0,0);
 
@@ -80,7 +80,7 @@ public class PlaneController : MonoBehaviour {
 				{
 					torqueToAdd.y = yrot;
 				}
-				torqueToAdd.y = torqueToAdd.z * YAWMOD;
+				torqueToAdd.y = torqueToAdd.y * YAWMOD;
 
 				if(Mathf.Abs(zrot) >ANGLE_RANGE)
 				{
